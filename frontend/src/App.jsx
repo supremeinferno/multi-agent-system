@@ -59,7 +59,7 @@ function App() {
     setActiveStage(0);
 
     try {
-      const response = await fetch(`${API_URL}/research`, {
+      const response = await fetch(`${API_URL}/api/research`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
