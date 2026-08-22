@@ -26,16 +26,14 @@ class ResearchRequest(BaseModel):
     topic: str
 
 
-@app.get("/")
+@app.get("/api")
 def home():
     return {
         "message": "Nexus Research API is running"
     }
 
 
-@app.post("/research")
+@app.post("/api/research")
 def research(request: ResearchRequest):
-
     result = run_research_pipeline(request.topic)
-
     return result
