@@ -1,0 +1,29 @@
+# Multi-Agent Research System
+# Recommended: Python 3.10+
+
+# OpenAI / LangChain
+openai>=1.0.0,<2
+langchain-core>=1.0.0,<2
+langchain-openai>=1.4.1,<2
+
+# Agent orchestration / ReAct-style agents
+langgraph>=1.2.10,<2
+
+# Web research tools
+tavily-python>=0.7.27,<1
+beautifulsoup4>=4.12.0,<5
+requests>=2.31.0,<3
+lxml>=5.0.0,<7
+
+# Environment variables (.env)
+python-dotenv>=1.0.0,<2
+
+
+# Mistral AI
+langchain-mistralai>=1.1.6,<2
+
+# Google Gemini
+langchain-google-genai>=4.3.2,<5
+
+# Grok / xAI
+langchain-xai>=1.3.0,<2
