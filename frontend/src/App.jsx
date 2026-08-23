@@ -83,11 +83,9 @@ function App() {
           "No report was returned."
       );
     } catch (err) {
-      console.error(err);
+       console.error("ERROR:", err);
 
-      setError(
-        "Unable to connect to the research engine. Make sure FastAPI is running on port 8000."
-      );
+      setError(err.message);
     } finally {
       setLoading(false);
     }
