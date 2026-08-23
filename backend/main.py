@@ -37,3 +37,4 @@ def home():
 def research(request: ResearchRequest):
     result = run_research_pipeline(request.topic)
     return result
+
