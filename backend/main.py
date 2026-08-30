@@ -15,7 +15,9 @@ app = FastAPI(
 # Allow React frontend to communicate with FastAPI
 app.add_middleware(
     CORSMiddleware,
-    allow_origins="*",
+    allow_origins=[
+        "https://nexus-ai-research.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
