@@ -16,7 +16,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://nexus-ai-research.vercel.app/]]"
+        "https://nexus-ai-research.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
