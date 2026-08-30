@@ -37,6 +37,11 @@ def home():
 
 @app.post("/api/research")
 def research(request: ResearchRequest):
-    result = run_research_pipeline(request.topic)
-    return result
-
+    try:
+        result = run_research_pipeline(request.topic)
+        return result
+    except Exception as e:
+        print("========== RESEARCH ERROR ==========")
+        print(type(e).__name__)
+        print(str(e))
+        raise
