@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import "./index.css";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import "./index.css";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -14,6 +14,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [activeStage, setActiveStage] = useState(0);
+  const [savingPDF, setSavingPDF] = useState(false);
 
   const stages = [
     {
@@ -38,6 +39,10 @@ function App() {
     },
   ];
 
+  /* =========================
+     RESEARCH PROGRESS
+  ========================= */
+
   useEffect(() => {
     if (!loading) return;
 
@@ -52,72 +57,107 @@ function App() {
     return () => clearInterval(interval);
   }, [loading]);
 
-  
-  
+  /* =========================
+     SAVE REPORT AS PDF
+  ========================= */
+
   const saveChatAsPDF = async () => {
-  const chatElement = document.getElementById("research-chat");
+    const chatElement = document.getElementById("research-chat");
 
-  if (!chatElement) {
-    console.error("Research chat not found");
-    return;
-  }
+    if (!chatElement) {
+      console.error("Research report not found");
+      return;
+    }
 
-  try {
-    const canvas = await html2canvas(chatElement, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#0B111B",
-    });
+    try {
+      setSavingPDF(true);
 
-    const imgData = canvas.toDataURL("image/png");
+      const canvas = await html2canvas(chatElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#0B111B",
+        logging: false,
+      });
 
-    const pdf = new jsPDF("p", "mm", "a4");
+      const imgData = canvas.toDataURL("image/png");
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdf = new jsPDF("p", "mm", "a4");
 
-    const imgWidth = pageWidth - 20;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    let heightLeft = imgHeight;
-    let position = 10;
+      const margin = 10;
 
-    pdf.addImage(
-      imgData,
-      "PNG",
-      10,
-      position,
-      imgWidth,
-      imgHeight
-    );
+      const imgWidth = pageWidth - margin * 2;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    heightLeft -= pageHeight - 20;
+      let heightLeft = imgHeight;
+      let position = margin;
 
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight + 10;
-
-      pdf.addPage();
+      /*
+       * First page
+       */
 
       pdf.addImage(
         imgData,
         "PNG",
-        10,
+        margin,
         position,
         imgWidth,
         imgHeight
       );
 
-      heightLeft -= pageHeight - 20;
+      heightLeft -= pageHeight - margin * 2;
+
+      /*
+       * Additional pages
+       */
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight + margin;
+
+        pdf.addPage();
+
+        pdf.addImage(
+          imgData,
+          "PNG",
+          margin,
+          position,
+          imgWidth,
+          imgHeight
+        );
+
+        heightLeft -= pageHeight - margin * 2;
+      }
+
+      /*
+       * Save PDF
+       */
+
+      const safeTopic = topic
+        .trim()
+        .replace(/[^a-z0-9]+/gi, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 50);
+
+      const fileName = safeTopic
+        ? `Nexus_${safeTopic}.pdf`
+        : "Nexus_Research.pdf";
+
+      pdf.save(fileName);
+
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      setError("Unable to generate the PDF. Please try again.");
+    } finally {
+      setSavingPDF(false);
     }
+  };
 
-    pdf.save("Nexus_Research.pdf");
+  /* =========================
+     RUN RESEARCH
+  ========================= */
 
-  } catch (error) {
-    console.error("PDF generation failed:", error);
-  }
-};
-
-  
   const runResearch = async () => {
     if (!topic.trim() || loading) return;
 
@@ -151,13 +191,16 @@ function App() {
           "No report was returned."
       );
     } catch (err) {
-       console.error("ERROR:", err);
-
-      setError(err.message);
+      console.error("ERROR:", err);
+      setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);
     }
   };
+
+  /* =========================
+     KEYBOARD HANDLER
+  ========================= */
 
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -166,28 +209,42 @@ function App() {
     }
   };
 
+  /* =========================
+     RESET
+  ========================= */
+
   const resetResearch = () => {
     setTopic("");
     setReport("");
     setError("");
     setLoading(false);
     setActiveStage(0);
+    setSavingPDF(false);
   };
 
   return (
     <div className="app">
 
-      {/* Background */}
+      {/* =========================
+          BACKGROUND
+      ========================= */}
+
       <div className="ambient ambient-one"></div>
       <div className="ambient ambient-two"></div>
 
       <div className="stars">
         {Array.from({ length: 28 }).map((_, index) => (
-          <span key={index} className={`star star-${index % 5}`}></span>
+          <span
+            key={index}
+            className={`star star-${index % 5}`}
+          ></span>
         ))}
       </div>
 
-      {/* NAVBAR */}
+      {/* =========================
+          NAVBAR
+      ========================= */}
+
       <nav className="navbar">
         <div className="logo">NEXUS.</div>
 
@@ -197,7 +254,9 @@ function App() {
         </div>
       </nav>
 
-      {/* ================= LANDING / LOADING ================= */}
+      {/* =========================
+          LANDING / LOADING
+      ========================= */}
 
       {!report && (
         <main className="main-stage">
@@ -222,7 +281,11 @@ function App() {
 
             {/* ORBITAL OBJECT */}
 
-            <div className={`orbital-system ${loading ? "is-loading" : ""}`}>
+            <div
+              className={`orbital-system ${
+                loading ? "is-loading" : ""
+              }`}
+            >
 
               <div className="orbit orbit-large"></div>
               <div className="orbit orbit-medium"></div>
@@ -248,7 +311,9 @@ function App() {
 
                   <textarea
                     value={topic}
-                    onChange={(event) => setTopic(event.target.value)}
+                    onChange={(event) =>
+                      setTopic(event.target.value)
+                    }
                     onKeyDown={handleKeyDown}
                     placeholder="What do you want to investigate?"
                     rows="2"
@@ -271,13 +336,17 @@ function App() {
               </>
             )}
 
-            {/* LOADING STATE */}
+            {/* =========================
+                LOADING STATE
+            ========================= */}
 
             {loading && (
               <section className="research-progress">
 
                 <div className="progress-header">
+
                   <div>
+
                     <span className="progress-label">
                       RESEARCH IN PROGRESS
                     </span>
@@ -288,35 +357,49 @@ function App() {
                       <span>.</span>
                       <span>.</span>
                     </h2>
+
                   </div>
 
                   <div className="progress-topic">
                     "{topic}"
                   </div>
+
                 </div>
 
                 <div className="agent-pipeline">
 
                   {stages.map((stage, index) => {
 
-                    const isActive = index === activeStage;
-                    const isDone = index < activeStage;
+                    const isActive =
+                      index === activeStage;
+
+                    const isDone =
+                      index < activeStage;
 
                     return (
-                      <React.Fragment key={stage.number}>
+                      <React.Fragment
+                        key={stage.number}
+                      >
 
                         <div
                           className={`agent-stage ${
                             isActive ? "active" : ""
-                          } ${isDone ? "done" : ""}`}
+                          } ${
+                            isDone ? "done" : ""
+                          }`}
                         >
 
                           <div className="stage-number">
-                            {isDone ? "✓" : stage.number}
+                            {isDone
+                              ? "✓"
+                              : stage.number}
                           </div>
 
                           <div className="stage-info">
-                            <strong>{stage.title}</strong>
+
+                            <strong>
+                              {stage.title}
+                            </strong>
 
                             <small>
                               {isActive
@@ -325,6 +408,7 @@ function App() {
                                 ? "Complete"
                                 : "Waiting"}
                             </small>
+
                           </div>
 
                           {isActive && (
@@ -333,10 +417,13 @@ function App() {
 
                         </div>
 
-                        {index < stages.length - 1 && (
+                        {index <
+                          stages.length - 1 && (
                           <div
                             className={`pipeline-connector ${
-                              index < activeStage ? "complete" : ""
+                              index < activeStage
+                                ? "complete"
+                                : ""
                             }`}
                           ></div>
                         )}
@@ -348,12 +435,15 @@ function App() {
                 </div>
 
                 <p className="progress-note">
-                  Nexus is gathering evidence before generating your report.
-                  This may take a moment.
+                  Nexus is gathering evidence before
+                  generating your report. This may take a
+                  moment.
                 </p>
 
               </section>
             )}
+
+            {/* ERROR */}
 
             {error && (
               <div className="error-box">
@@ -367,10 +457,14 @@ function App() {
         </main>
       )}
 
-      {/* ================= REPORT ================= */}
+      {/* =========================
+          REPORT
+      ========================= */}
 
       {report && !loading && (
         <main className="report-page">
+
+          {/* REPORT HEADER */}
 
           <section className="report-header">
 
@@ -384,22 +478,51 @@ function App() {
               <h1>{topic}</h1>
 
               <p>
-                Synthesized by the Nexus multi-agent research pipeline.
+                Synthesized by the Nexus multi-agent
+                research pipeline.
               </p>
 
             </div>
 
-            <button
-              className="new-research"
-              onClick={resetResearch}
-            >
-              <span>+</span>
-              NEW RESEARCH
-            </button>
+            <div className="report-actions">
+
+              {/* SAVE PDF */}
+
+              <button
+                className="save-pdf"
+                onClick={saveChatAsPDF}
+                disabled={savingPDF}
+              >
+                {savingPDF ? (
+                  <>
+                    SAVING
+                    <span>...</span>
+                  </>
+                ) : (
+                  <>
+                    SAVE PDF
+                    <span>↓</span>
+                  </>
+                )}
+              </button>
+
+              {/* NEW RESEARCH */}
+
+              <button
+                className="new-research"
+                onClick={resetResearch}
+              >
+                <span>+</span>
+                NEW RESEARCH
+              </button>
+
+            </div>
 
           </section>
 
-          {/* PIPELINE */}
+          {/* =========================
+              PIPELINE
+          ========================= */}
 
           <section className="report-pipeline">
 
@@ -417,7 +540,8 @@ function App() {
 
                 </div>
 
-                {index < stages.length - 1 && (
+                {index <
+                  stages.length - 1 && (
                   <div className="report-line"></div>
                 )}
 
@@ -426,15 +550,25 @@ function App() {
 
           </section>
 
-          {/* REPORT CARD */}
+          {/* =========================
+              REPORT CARD
+          ========================= */}
 
-          <article className="report-card">
+          <article
+            className="report-card"
+            id="research-chat"
+          >
 
             <div className="report-card-top">
-              <span>FINAL RESEARCH REPORT</span>
+
+              <span>
+                FINAL RESEARCH REPORT
+              </span>
+
               <span className="report-status">
                 ● VERIFIED
               </span>
+
             </div>
 
             <div className="report-content">
@@ -444,19 +578,27 @@ function App() {
                 components={{
 
                   h1: ({ children }) => (
-                    <h1 className="md-h1">{children}</h1>
+                    <h1 className="md-h1">
+                      {children}
+                    </h1>
                   ),
 
                   h2: ({ children }) => (
-                    <h2 className="md-h2">{children}</h2>
+                    <h2 className="md-h2">
+                      {children}
+                    </h2>
                   ),
 
                   h3: ({ children }) => (
-                    <h3 className="md-h3">{children}</h3>
+                    <h3 className="md-h3">
+                      {children}
+                    </h3>
                   ),
 
                   p: ({ children }) => (
-                    <p className="md-p">{children}</p>
+                    <p className="md-p">
+                      {children}
+                    </p>
                   ),
 
                   strong: ({ children }) => (
@@ -466,15 +608,21 @@ function App() {
                   ),
 
                   ul: ({ children }) => (
-                    <ul className="md-ul">{children}</ul>
+                    <ul className="md-ul">
+                      {children}
+                    </ul>
                   ),
 
                   ol: ({ children }) => (
-                    <ol className="md-ol">{children}</ol>
+                    <ol className="md-ol">
+                      {children}
+                    </ol>
                   ),
 
                   li: ({ children }) => (
-                    <li className="md-li">{children}</li>
+                    <li className="md-li">
+                      {children}
+                    </li>
                   ),
 
                   blockquote: ({ children }) => (
@@ -524,6 +672,7 @@ function App() {
                   td: ({ children }) => (
                     <td>{children}</td>
                   ),
+
                 }}
               >
                 {report}
@@ -533,18 +682,22 @@ function App() {
 
           </article>
 
-          {/* BOTTOM CTA */}
+          {/* =========================
+              BOTTOM CTA
+          ========================= */}
 
           <section className="bottom-cta">
 
             <div className="cta-orb"></div>
 
             <div>
+
               <span>ANOTHER QUESTION?</span>
 
               <h2>
                 Keep digging.
               </h2>
+
             </div>
 
             <button onClick={resetResearch}>
@@ -557,7 +710,9 @@ function App() {
         </main>
       )}
 
-      {/* FOOTER */}
+      {/* =========================
+          FOOTER
+      ========================= */}
 
       <footer>
 
@@ -580,4 +735,3 @@ function App() {
 }
 
 export default App;
-

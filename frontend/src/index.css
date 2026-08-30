@@ -1334,3 +1334,49 @@ footer {
     display: none;
   }
 }
+
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.save-pdf {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  padding: 13px 20px;
+
+  border: 1px solid #D4A44D;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #D4A44D;
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+
+  cursor: pointer;
+
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+.save-pdf:hover:not(:disabled) {
+  background: #D4A44D;
+  color: #0B111B;
+}
+
+.save-pdf:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.save-pdf span {
+  font-size: 15px;
+}
