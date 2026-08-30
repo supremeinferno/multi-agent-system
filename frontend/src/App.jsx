@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./index.css";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
@@ -50,6 +52,72 @@ function App() {
     return () => clearInterval(interval);
   }, [loading]);
 
+  
+  
+  const saveChatAsPDF = async () => {
+  const chatElement = document.getElementById("research-chat");
+
+  if (!chatElement) {
+    console.error("Research chat not found");
+    return;
+  }
+
+  try {
+    const canvas = await html2canvas(chatElement, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#0B111B",
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth - 20;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    let heightLeft = imgHeight;
+    let position = 10;
+
+    pdf.addImage(
+      imgData,
+      "PNG",
+      10,
+      position,
+      imgWidth,
+      imgHeight
+    );
+
+    heightLeft -= pageHeight - 20;
+
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight + 10;
+
+      pdf.addPage();
+
+      pdf.addImage(
+        imgData,
+        "PNG",
+        10,
+        position,
+        imgWidth,
+        imgHeight
+      );
+
+      heightLeft -= pageHeight - 20;
+    }
+
+    pdf.save("Nexus_Research.pdf");
+
+  } catch (error) {
+    console.error("PDF generation failed:", error);
+  }
+};
+
+  
   const runResearch = async () => {
     if (!topic.trim() || loading) return;
 
