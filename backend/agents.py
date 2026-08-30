@@ -1,5 +1,5 @@
 from langchain.agents import create_agent
-from langchain_mistralai import ChatMistralAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from tools import tavily_search, scrape_webpage
@@ -9,12 +9,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-
-llm = ChatMistralAI(
-    model="mistral-small-latest",
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
     temperature=0
 )
-
 
 # Research Agent
 def build_research_agent():
