@@ -16,7 +16,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "https://nexus-ai-research.vercel.app"
+        "https://nexus-ai-research.vercel.app/]]"
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -37,11 +37,6 @@ def home():
 
 @app.post("/api/research")
 def research(request: ResearchRequest):
-    try:
-        result = run_research_pipeline(request.topic)
-        return result
-    except Exception as e:
-        print("========== RESEARCH ERROR ==========")
-        print(type(e).__name__)
-        print(str(e))
-        raise
+    result = run_research_pipeline(request.topic)
+    return result
+
