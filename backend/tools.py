@@ -1,6 +1,6 @@
 from langchain.tools import tool
 from tavily import TavilyClient
-from mistralai import Mistral
+from mistralai.client import Mistral
 from bs4 import BeautifulSoup
 import requests
 import os
@@ -95,3 +95,28 @@ def scrape_webpage(url: str) -> str:
 
     except Exception as e:
         return f"Unexpected scraping error: {e}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
