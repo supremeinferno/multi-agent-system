@@ -1,5 +1,4 @@
 from langchain.agents import create_agent
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from tools import tavily_search, scrape_webpage
@@ -9,10 +8,22 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-llm = ChatGoogleGenerativeAI(
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_mistralai import ChatMistralAI
+
+
+gemini_llm = ChatGoogleGenerativeAI(
     model="gemini-3.6-flash",
     temperature=0
 )
+
+mistral_llm = ChatMistralAI(
+    model="mistral-small-latest",   # chhota, faster, free-tier me zyada requests allow
+    temperature=0
+)
+
+# Gemini fail (quota/rate-limit) hone par automatically Mistral pe switch
+llm = gemini_llm.with_fallbacks([mistral_llm])
 
 # Research Agent
 def build_research_agent():
