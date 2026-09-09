@@ -8,22 +8,32 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_mistralai import ChatMistralAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_mistralai import ChatMistralAI
 
 
-gemini_llm = ChatGoogleGenerativeAI(
-    model="gemini-3.6-flash",
-    temperature=0
+# gemini_llm = ChatGoogleGenerativeAI(
+#     model="gemini-3.6-flash",
+#     temperature=0
+# )
+
+# mistral_llm = ChatMistralAI(
+#     model="mistral-small-latest",   
+#     temperature=0
+# )
+
+# llm = gemini_llm.with_fallbacks([mistral_llm])
+
+import os
+
+from openai import OpenAI
+
+client = OpenAI(base_url="https://api.experientiallabs.ai/v1", api_key=os.environ["EXPLABS_API_KEY"])
+llm = response = client.chat.completions.create(
+    model="gpt-6-astra",
+    stream=True,
+    messages=[{"role": "user", "content": "Hello from my product"}],
 )
-
-mistral_llm = ChatMistralAI(
-    model="mistral-small-latest",   # chhota, faster, free-tier me zyada requests allow
-    temperature=0
-)
-
-# Gemini fail (quota/rate-limit) hone par automatically Mistral pe switch
-llm = gemini_llm.with_fallbacks([mistral_llm])
 
 # Research Agent
 def build_research_agent():
